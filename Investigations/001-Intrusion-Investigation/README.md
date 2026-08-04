@@ -1,24 +1,14 @@
 # Investigation 001 – Phishing Attack
 
-## Overview
+## Phase 1 – Reconnaissance
 
-This investigation simulates a phishing attack against a Windows endpoint in a controlled lab environment. The objective is to demonstrate how an attacker progresses through the early stages of the Cyber Kill Chain and how a SOC analyst can identify and investigate the associated telemetry using Splunk Enterprise, Sysmon, and Windows Firewall logs.
+### Objective
 
-> **Disclaimer**
->
-> This project is intended for educational purposes only. The PowerShell payload is non-malicious and performs only read-only system discovery to generate realistic telemetry for analysis.
+Identify the target operating system and enumerate exposed network services.
 
----
+### Attacker Activity
 
-# Phase 1 – Reconnaissance
-
-## Objective
-
-Identify the target operating system and enumerate exposed services before launching the attack.
-
-### Attacker Action
-
-The attacker performed an Nmap SYN scan against the Windows endpoint.
+The attacker performed an Nmap scan against the Windows endpoint.
 
 ```bash
 nmap -sS -sV <VICTIM_IP>
@@ -26,120 +16,114 @@ nmap -sS -sV <VICTIM_IP>
 
 ### Findings
 
-The scan identified the following services:
+The scan identified several Microsoft networking services, including RPC (135), NetBIOS (139), and SMB (445). These services confirmed that the target was a Windows workstation and provided valuable information for planning the next stage of the attack.
 
-| Port | Service |
-|------|---------|
-| 135 | Microsoft RPC |
-| 139 | NetBIOS |
-| 445 | SMB |
+---
 
-These services confirmed that the target was a Windows workstation and helped the attacker prepare a Windows-specific attack.
+**Figure 1.** Nmap scan results showing the open services discovered on the Windows endpoint.
 
-### Evidence
+<p align="center">
+<img src="screenshots/recon/nmap_scan.png" width="800">
+</p>
 
-- Nmap scan results
-- Windows Firewall logs
-- Splunk search results
+---
 
-### Detection Query
+Windows Firewall logs confirmed multiple inbound connection attempts targeting ports **135**, **139**, and **445**, indicating reconnaissance activity from the attacker.
+
+### Splunk Detection Query
 
 ```spl
 index=endpoint
 sourcetype=windows:firewall
+RECEIVE
 (" 135 " OR " 139 " OR " 445 ")
 | table _time _raw
 ```
 
-### MITRE ATT&CK
+---
 
-- **T1595 – Active Scanning**
+**Figure 2.** Splunk investigation showing Windows Firewall events generated during the reconnaissance phase.
+
+<p align="center">
+<img src="screenshots/recon/splunk_recon.png" width="900">
+</p>
 
 ---
 
-# Phase 2 – Weaponization
+## Phase 2 – Weaponization
 
-## Objective
+### Objective
 
-Prepare a payload that appears legitimate while generating realistic telemetry for investigation.
+Prepare a payload capable of generating realistic endpoint telemetry.
 
-### Attacker Action
+### Attacker Activity
 
-The attacker created a PowerShell script named **IT_Diagnostic.ps1** disguised as an internal IT diagnostic tool.
+The attacker created a PowerShell script named **IT_Diagnostic.ps1**, disguised as an internal IT diagnostic tool.
 
-The script safely collects:
+The script safely performs:
 
-- Current user
-- Computer name
-- Network configuration
-- Running processes
-- Installed antivirus information
+- User discovery
+- Host discovery
+- Network enumeration
+- Running process enumeration
+- Antivirus discovery
 
-No destructive or malicious actions are performed.
-
-### Payload
-
-```
-IT_Diagnostic.ps1
-```
-
-### Evidence
-
-- PowerShell payload
-- Source code
-
-### MITRE ATT&CK
-
-- **T1059.001 – PowerShell**
-- **T1082 – System Information Discovery**
-- **T1518 – Software Discovery**
+No destructive actions are performed.
 
 ---
 
-# Phase 3 – Delivery
+**Figure 3.** PowerShell payload used during the simulation.
 
-## Objective
+<p align="center">
+<img src="screenshots/weaponization/payload.png" width="900">
+</p>
 
-Deliver the payload to the victim using a phishing email.
+---
 
-### Attacker Action
+## Phase 3 – Delivery
 
-The attacker hosted the payload on a Python HTTP server.
+### Objective
+
+Deliver the payload through a phishing email.
+
+### Attacker Activity
+
+The payload was hosted on a Python HTTP server running on the Kali Linux attacker machine.
 
 ```bash
 python3 -m http.server 8000
 ```
 
-A phishing email impersonating the organization's IT Support team instructed the victim to download the diagnostic script.
-
-```
-http://<ATTACKER_IP>:8000/IT_Diagnostic.ps1
-```
-
-### Evidence
-
-- HTML phishing email
-- Python HTTP server log
-- Victim download request
-
-Example:
-
-```
-GET /IT_Diagnostic.ps1 HTTP/1.1 200
-```
-
-### MITRE ATT&CK
-
-- **T1566.002 – Spearphishing Link**
+A phishing email impersonating the organization's IT Support team instructed the victim to download the PowerShell diagnostic tool.
 
 ---
 
-# Investigation Summary
+**Figure 4.** Simulated phishing email used to deliver the payload.
 
-The attacker successfully completed the first three phases of the Cyber Kill Chain by:
+<p align="center">
+<img src="screenshots/delivery/phishing_email.png" width="900">
+</p>
 
-- Performing reconnaissance against the Windows endpoint.
-- Preparing a PowerShell-based payload disguised as an IT diagnostic tool.
-- Delivering the payload through a phishing email hosted on a Python web server.
+---
 
-These actions generated network and endpoint telemetry that can be analyzed using Splunk Enterprise and Sysmon.
+The attacker verified successful delivery by monitoring the Python HTTP server logs.
+
+---
+
+**Figure 5.** Python HTTP server log confirming the victim successfully downloaded the payload.
+
+<p align="center">
+<img src="screenshots/delivery/http_server.png" width="900">
+</p>
+
+---
+
+## Summary
+
+The attacker successfully completed the first three phases of the Cyber Kill Chain:
+
+- **Reconnaissance:** Identified exposed Windows services through network scanning.
+- **Weaponization:** Prepared a benign PowerShell diagnostic script to simulate attacker behavior.
+- **Delivery:** Delivered the payload using a phishing email and confirmed successful download through HTTP server logs.
+
+The generated telemetry provides realistic artifacts for investigation using Splunk Enterprise, Sysmon, and Windows Firewall logs.
