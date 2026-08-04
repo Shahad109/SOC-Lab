@@ -84,7 +84,7 @@ RECEIVE
 **Figure 1.** Nmap scan identifying the target's exposed services.
 
 <p align="center">
-<img src="screenshots/image.png" width="900">
+<img src="Screenshots/image.png" width="900">
 </p>
 
 ---
@@ -92,7 +92,7 @@ RECEIVE
 **Figure 2.** Splunk investigation showing Windows Firewall events generated during the reconnaissance phase.
 
 <p align="center">
-<img src="screenshots/Image2.png" width="900">
+<img src="Screenshots/image2.png" width="900">
 </p>
 
 ---
@@ -122,7 +122,7 @@ No destructive or unauthorized actions are performed.
 **Figure 3.** PowerShell payload used during the simulation.
 
 <p align="center">
-<img src="screenshots/Image3.png" width="900">
+<img src="Screenshots/image3.png" width="900">
 </p>
 
 ---
@@ -158,7 +158,7 @@ The Python HTTP server recorded the victim's request for the payload, confirming
 **Figure 4.** Simulated phishing email used to deliver the payload.
 
 <p align="center">
-<img src="screenshots/Image4.png" width="900">
+<img src="Screenshots/image4.png" width="900">
 </p>
 
 ---
