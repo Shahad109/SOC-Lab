@@ -250,3 +250,252 @@ From a defender's perspective, the script appeared to be a routine IT maintenanc
 ## SOC Analyst Conclusion
 
 The investigation determined that the attacker weaponized a trusted PowerShell maintenance script rather than introducing a standalone malicious executable. By embedding additional functionality into an existing administrative tool, the attacker increased the likelihood of successful execution while reducing suspicion. Although the weaponization process itself generated no endpoint telemetry, its effects became evident during subsequent execution and persistence stages of the investigation.
+
+# Phase 3 – Delivery
+
+## Objective
+
+Deliver the weaponized PowerShell script to the target through a trusted communication channel, increasing the likelihood of successful execution.
+
+---
+
+## Description
+
+During the delivery phase, the attacker distributed the modified **EndpointHealthCheck.ps1** script to the victim by impersonating the organization's IT department.
+
+Instead of exploiting a vulnerability, the attacker relied on **social engineering**. A convincing HTML email was created to resemble a legitimate internal IT notification requesting employees to perform a routine endpoint health check.
+
+The email contained a link to download the PowerShell script from what appeared to be an internal repository. In the lab environment, this repository was simulated using a Python HTTP server hosted on the Kali Linux attacker machine.
+
+Because the request appeared to originate from a trusted internal source, the victim downloaded the script without suspicion.
+
+---
+
+## Attack Activity
+
+The attacker hosted the modified script using Python's built-in HTTP server.
+
+### Command
+
+```bash
+python3 -m http.server 8000
+```
+
+### Why was this command used?
+
+| Option | Description |
+|---------|-------------|
+| `python3` | Launches the Python interpreter. |
+| `-m http.server` | Starts Python's built-in HTTP web server module. |
+| `8000` | Specifies TCP port 8000 as the listening port. |
+
+This command allowed the attacker to simulate an internal file server from which the victim could download the modified PowerShell script.
+
+---
+
+## Delivery Process
+
+1. The attacker hosted **EndpointHealthCheck.ps1** on the web server.
+2. The victim received an HTML email requesting a routine endpoint health check.
+3. The victim clicked the download link.
+4. The PowerShell script was successfully downloaded from the simulated repository.
+
+---
+
+## SOC Investigation
+
+### Investigation Question
+
+> **Was the malicious script successfully delivered to the victim?**
+
+Unlike the execution phase, the delivery stage generated little endpoint telemetry. Therefore, evidence was collected from the attacker's HTTP server logs to confirm that the victim successfully downloaded the script.
+
+Example server log:
+
+```text
+GET /EndpointHealthCheck.ps1 HTTP/1.1" 200
+```
+
+---
+
+## Why is HTTP Status Code 200 important?
+
+| Status Code | Meaning |
+|--------------|---------|
+| 200 OK | The requested file was successfully delivered to the client. |
+| 304 Not Modified | The client already had the latest copy and used its cached version. |
+
+A **200 OK** response confirms that the victim downloaded the script successfully.
+
+---
+
+## Findings
+
+The Python HTTP server logs confirmed that the victim requested and successfully downloaded **EndpointHealthCheck.ps1**.
+
+This indicates that the delivery phase was successful and that the attacker had successfully transferred the payload to the victim.
+
+---
+
+## MITRE ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|---------|-----------|----|
+| Initial Access | Phishing | T1566 |
+| Initial Access | Spearphishing Link | T1566.002 |
+
+> **Note:** In this lab, the phishing email and web server are simulated to demonstrate the delivery stage.
+
+---
+
+## Evidence
+
+### Image 5 – HTML Email
+
+<p align="center">
+<img src="Screenshots/Image5.png" width="900">
+</p>
+
+*Figure 5. Simulated internal IT email used to deliver the modified PowerShell script.*
+
+---
+
+### Image 6 – Python HTTP Server
+
+<p align="center">
+<img src="Screenshots/Image6.png" width="900">
+</p>
+
+*Figure 6. Python HTTP server hosting the modified EndpointHealthCheck.ps1 script.*
+
+---
+
+### Image 7 – Successful File Download
+
+<p align="center">
+<img src="Screenshots/Image7.png" width="900">
+</p>
+
+*Figure 7. HTTP server log showing a successful request for EndpointHealthCheck.ps1 (HTTP 200 OK).*
+
+---
+
+## SOC Analyst Conclusion
+
+The investigation confirmed that the modified PowerShell script was successfully delivered to the victim through a trusted communication channel. By impersonating the organization's IT department and hosting the payload on a simulated internal repository, the attacker increased the likelihood that the script would be downloaded and executed. This completed the delivery phase and enabled the attacker to proceed to execution.
+
+# Phase 3 – Delivery
+
+## Objective
+
+Deliver the weaponized PowerShell script to the target through a trusted communication channel, increasing the likelihood that the victim will execute the payload.
+
+---
+
+## Description
+
+The delivery phase focuses on transferring the prepared payload to the target system. Rather than exploiting a software vulnerability, the attacker relied on social engineering by impersonating the organization's IT department.
+
+A convincing HTML email was created to resemble a routine IT notification requesting employees to perform a scheduled endpoint health check. The email contained a link directing the victim to download the latest version of the **EndpointHealthCheck.ps1** script from what appeared to be the organization's internal repository.
+
+Within the lab environment, the repository was simulated using Python's built-in HTTP server hosted on the Kali Linux attacker machine. Trusting the legitimacy of the request, the victim downloaded the modified PowerShell script.
+
+---
+
+## Attack Activity
+
+The attacker hosted the modified PowerShell script using Python's built-in HTTP server.
+
+### Command
+
+```bash
+python3 -m http.server 8000
+```
+
+### Why was this command used?
+
+| Option | Description |
+|---------|-------------|
+| `python3` | Launches the Python interpreter. |
+| `-m http.server` | Starts Python's lightweight HTTP server module. |
+| `8000` | Specifies the listening port used to host the repository. |
+
+This command provided a simple web server that simulated an internal IT file repository from which the victim downloaded the modified PowerShell script.
+
+---
+
+## Delivery Process
+
+1. The attacker hosted the modified `EndpointHealthCheck.ps1` script on the simulated repository.
+2. The victim received a trusted-looking HTML email requesting completion of the monthly endpoint health check.
+3. The victim followed the provided link.
+4. The modified PowerShell script was successfully downloaded from the attacker's web server.
+
+---
+
+## SOC Investigation
+
+### Investigation Question
+
+> **Was the malicious PowerShell script successfully delivered to the victim?**
+
+Unlike later stages of the attack, the delivery phase generated minimal endpoint telemetry because the script had not yet been executed. Therefore, evidence of successful delivery was obtained from the web server logs.
+
+The Python HTTP server recorded every request made by the victim, allowing the analyst to verify whether the payload had been downloaded successfully.
+
+---
+
+## Findings
+
+The web server logs confirmed that the victim successfully requested and downloaded **EndpointHealthCheck.ps1**, indicated by the HTTP **200 OK** response.
+
+This confirms that the payload was successfully transferred to the victim's workstation and was available for execution during the next phase of the attack.
+
+---
+
+## MITRE ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|---------|-----------|----|
+| Initial Access | Phishing | T1566 |
+| Initial Access | Spearphishing Link | T1566.002 |
+
+> **Note:** The phishing email and internal repository are simulated within the lab environment to demonstrate the delivery stage of the Cyber Kill Chain.
+
+---
+
+## Evidence
+
+### Image 5 – Simulated Internal IT Email
+
+<p align="center">
+<img src="Screenshots/Image5.png" width="900">
+</p>
+
+*Figure 5. Simulated internal IT email instructing the employee to download the latest endpoint health check script.*
+
+---
+
+### Image 6 – Python HTTP Server
+
+<p align="center">
+<img src="Screenshots/Image6.png" width="900">
+</p>
+
+*Figure 6. Python HTTP server hosting the modified `EndpointHealthCheck.ps1` script.*
+
+---
+
+### Image 7 – Successful Script Download
+
+<p align="center">
+<img src="Screenshots/Image7.png" width="900">
+</p>
+
+*Figure 7. Web server logs confirming that the victim successfully downloaded `EndpointHealthCheck.ps1` (HTTP 200 OK).*
+
+---
+
+## SOC Analyst Conclusion
+
+The delivery phase was successful. Analysis of the web server logs confirmed that the victim downloaded the modified PowerShell script from the simulated internal repository. By delivering the payload through a trusted IT communication channel, the attacker increased the likelihood of successful execution, enabling the attack to progress to the execution phase.
