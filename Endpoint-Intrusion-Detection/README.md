@@ -32,41 +32,52 @@ The attacker's objective is not immediate disruption or data theft, but to estab
 
 ## Objective
 
-Identify exposed services on the target endpoint to collect information that may support subsequent stages of the intrusion.
+Identify exposed services on the target endpoint to gather information that could support later stages of the attack.
 
 ---
 
 ## Description
 
-Reconnaissance is the first phase of the Cyber Kill Chain, during which an attacker gathers information about a target before attempting compromise. In this scenario, the attacker performed active network reconnaissance against the Windows workstation to identify accessible services and determine whether the endpoint was a suitable target.
-
-Using **Nmap**, the attacker conducted a TCP SYN scan with service detection enabled. The scan identified several Windows services, including Remote Procedure Call (RPC), NetBIOS, and Server Message Block (SMB). These services confirmed that the target was a Windows endpoint and provided insight into the operating environment.
-
-No exploitation occurred during this phase. Instead, the collected information was used to support the planning of later attack stages.
+Reconnaissance is the first stage of the Cyber Kill Chain, where an attacker collects information about the target before attempting exploitation. In this scenario, the attacker performed active network scanning to identify exposed services on the Windows endpoint and determine whether it was a suitable target.
 
 ---
 
 ## Attack Activity
 
-The attacker executed the following command from the Kali Linux system:
+The attacker used **Nmap** to perform a TCP SYN scan with service version detection.
+
+### Command
 
 ```bash
 nmap -sS -sV <Victim-IP>
 ```
 
-The scan identified several open ports, including:
+### Why was this command used?
 
-| Port | Service | Purpose |
-|------|----------|---------|
-| 135 | RPC | Remote Procedure Call |
-| 139 | NetBIOS | Network File Sharing |
-| 445 | SMB | Windows File Sharing |
+| Option | Description |
+|---------|-------------|
+| `-sS` | Performs a TCP SYN (half-open) scan, which is a fast and commonly used reconnaissance technique to identify open ports without completing the full TCP handshake. |
+| `-sV` | Attempts to identify the service and version running on each open port. This helps the attacker understand the target environment. |
+
+### Scan Results
+
+The scan identified the following Windows services:
+
+| Port | Service | Description |
+|------|----------|-------------|
+| 135 | RPC | Remote Procedure Call service used by Windows. |
+| 139 | NetBIOS | Network file and printer sharing service. |
+| 445 | SMB | Server Message Block used for Windows file sharing and remote administration. |
 
 ---
 
 ## SOC Investigation
 
-Following an alert indicating possible reconnaissance activity, the SOC analyst reviewed Windows Firewall logs within Splunk Enterprise to identify inbound connection attempts targeting commonly exposed Windows services.
+### Investigation Question
+
+> **Was the endpoint targeted by reconnaissance activity?**
+
+To answer this question, Windows Firewall logs were reviewed in Splunk Enterprise to identify inbound connection attempts targeting common Windows services.
 
 ### SPL Query
 
@@ -78,13 +89,23 @@ RECEIVE
 | table _time _raw
 ```
 
+### Why was this query used?
+
+| Query Component | Purpose |
+|-----------------|---------|
+| `index=endpoint` | Searches the index containing endpoint logs. |
+| `sourcetype=windows:firewall` | Limits results to Windows Firewall events. |
+| `RECEIVE` | Displays inbound network connections received by the endpoint. |
+| `("135" OR "139" OR "445")` | Filters events targeting the Windows services identified during reconnaissance. |
+| `table _time _raw` | Displays the event timestamp and the complete firewall log for analysis. |
+
 ---
 
 ## Findings
 
-The investigation revealed multiple inbound connection attempts targeting ports **135**, **139**, and **445** from the same source host. This sequence of connection attempts is consistent with active service enumeration rather than normal user activity.
+The investigation identified multiple inbound connection attempts targeting ports **135**, **139**, and **445** from the same source host.
 
-Although the reconnaissance phase did not directly compromise the endpoint, it provided the attacker with valuable information about the target system and laid the groundwork for the subsequent weaponization and delivery phases.
+This activity is consistent with active network reconnaissance, where an attacker probes a target to identify exposed services before attempting further compromise. Although no exploitation occurred during this phase, the information gathered enabled the attacker to prepare the next stage of the intrusion.
 
 ---
 
@@ -98,26 +119,26 @@ Although the reconnaissance phase did not directly compromise the endpoint, it p
 
 ## Evidence
 
-### Image 1 – Nmap Scan Results
+### Image 1 – Nmap Scan
 
 <p align="center">
-<img src="Screenshots/image1.png" width="900">
+<img src="screenshots/Image1.png" width="900">
 </p>
 
-*Figure 1. Nmap service scan identifying exposed Windows services on the target endpoint.*
+*Figure 1. Nmap TCP SYN scan identifying exposed services on the Windows endpoint.*
 
 ---
 
-### Image 2 – Splunk Firewall Investigation
+### Image 2 – Splunk Investigation
 
 <p align="center">
-<img src="Screenshots/image2.png" width="900">
+<img src="screenshots/Image2.png" width="900">
 </p>
 
-*Figure 2. Windows Firewall events showing inbound connection attempts associated with reconnaissance activity.*
+*Figure 2. Windows Firewall logs reviewed in Splunk showing inbound connections associated with reconnaissance activity.*
 
 ---
 
-## Outcome
+## SOC Analyst Conclusion
 
-The reconnaissance phase successfully identified exposed network services on the target endpoint without triggering exploitation. The information gathered during this stage enabled the attacker to progress to the weaponization phase by selecting a trusted delivery method that aligned with the target environment.
+Based on the available evidence, the endpoint was subjected to active service enumeration. The attacker successfully identified exposed Windows services that could be leveraged during subsequent phases of the attack. While no malicious execution occurred during reconnaissance, this activity established the foundation for the weaponization and delivery stages that followed.
