@@ -142,3 +142,111 @@ This activity is consistent with active network reconnaissance, where an attacke
 ## SOC Analyst Conclusion
 
 Based on the available evidence, the endpoint was subjected to active service enumeration. The attacker successfully identified exposed Windows services that could be leveraged during subsequent phases of the attack. While no malicious execution occurred during reconnaissance, this activity established the foundation for the weaponization and delivery stages that followed.
+
+# Phase 2 – Weaponization
+
+## Objective
+
+Prepare a malicious payload capable of compromising the target while appearing as a legitimate administrative tool.
+
+---
+
+## Description
+
+During the weaponization phase, the attacker prepares the payload that will later be delivered to the victim. Instead of creating an obviously malicious program, the attacker compromises a trusted PowerShell maintenance script already used within the organization.
+
+The legitimate script, **EndpointHealthCheck.ps1**, is modified to preserve its original functionality while incorporating additional commands that perform endpoint discovery, establish persistence, and simulate outbound communication.
+
+By embedding malicious functionality into a trusted script, the attacker increases the likelihood that the payload will be executed without raising suspicion.
+
+---
+
+## Attack Activity
+
+The attacker modified the organization's trusted **EndpointHealthCheck.ps1** script by adding commands to:
+
+- Collect the current user information (`whoami`)
+- Retrieve the computer name (`hostname`)
+- Enumerate network configuration (`ipconfig /all`)
+- List running processes (`tasklist`)
+- Create a Scheduled Task for persistence (`schtasks`)
+- Initiate a simulated HTTP request to an attacker-controlled server
+
+The original administrative functionality of the script remained intact to maintain legitimacy.
+
+---
+
+## Why modify a trusted script?
+
+Attackers often abuse trusted administrative scripts because:
+
+- Employees are more likely to trust and execute them.
+- Security tools may be less suspicious of legitimate administrative utilities.
+- The script blends into normal IT operations.
+- Minimal modifications can provide significant attacker capabilities while remaining difficult to detect.
+
+This technique demonstrates how attackers can leverage trusted resources rather than relying on traditional malware.
+
+---
+
+## SOC Investigation
+
+### Investigation Question
+
+> **How did the attacker prepare the payload before it reached the victim?**
+
+During this phase, no endpoint telemetry is available because the script has not yet been executed. Therefore, the SOC analyst cannot directly observe the weaponization process through Sysmon or Splunk.
+
+Instead, evidence of weaponization is inferred during later phases by examining:
+
+- The PowerShell command line
+- Child processes spawned by the script
+- Persistence mechanisms
+- Network connections
+- The script contents during forensic analysis
+
+---
+
+## Findings
+
+The attacker successfully transformed a legitimate administrative script into a malicious payload while preserving its intended functionality.
+
+From a defender's perspective, the script appeared to be a routine IT maintenance tool, increasing the likelihood that it would be executed by the victim.
+
+---
+
+## MITRE ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|---------|-----------|----|
+| Execution | PowerShell | T1059.001 |
+
+> **Note:** Weaponization itself is not represented as a standalone MITRE ATT&CK tactic. Instead, the techniques introduced during this phase are mapped to the tactics they enable, such as Execution, Persistence, Discovery, and Command and Control.
+
+---
+
+## Evidence
+
+### Image 3 – Original EndpointHealthCheck.ps1
+
+<p align="center">
+<img src="screenshots/image3.png" width="900">
+</p>
+
+*Figure 3. The original PowerShell health check script used by the organization's IT department.*
+
+---
+
+### Image 4 – Modified EndpointHealthCheck.ps1
+
+<p align="center">
+<img src="screenshots/image4.png" width="900">
+</p>
+
+*Figure 4. The modified PowerShell script containing additional commands used to perform discovery, establish persistence, and simulate outbound communication.*
+
+---
+
+## SOC Analyst Conclusion
+
+The investigation determined that the attacker weaponized a trusted PowerShell maintenance script rather than introducing a standalone malicious executable. By embedding additional functionality into an existing administrative tool, the attacker increased the likelihood of successful execution while reducing suspicion. Although the weaponization process itself generated no endpoint telemetry, its effects became evident during subsequent execution and persistence stages of the investigation.
