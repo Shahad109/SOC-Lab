@@ -264,7 +264,7 @@ Deliver the weaponized PowerShell script to the target through a trusted communi
 
 The delivery phase focuses on transferring the prepared payload to the target system. Rather than exploiting a software vulnerability, the attacker relied on social engineering by impersonating the organization's IT department.
 
-A convincing HTML email was created to resemble a routine IT notification requesting employees to perform a scheduled endpoint health check. The email contained a link directing the victim to download the latest version of the **EndpointHealthCheck.ps1** script from what appeared to be the organization's internal repository.
+A convincing  email was created to resemble a routine IT notification requesting employees to perform a scheduled endpoint health check. The email contained a link directing the victim to download the latest version of the **EndpointHealthCheck.ps1** script from what appeared to be the organization's internal repository.
 
 Within the lab environment, the repository was simulated using Python's built-in HTTP server hosted on the Kali Linux attacker machine. Trusting the legitimacy of the request, the victim downloaded the modified PowerShell script.
 
