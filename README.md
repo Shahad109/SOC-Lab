@@ -73,7 +73,7 @@ A hands-on SOC investigation that simulates a realistic endpoint compromise usin
 ---
 
 More SOC investigations will be added over time.
----
+
 
 
 ## Skills Demonstrated
