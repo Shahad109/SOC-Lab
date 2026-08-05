@@ -230,7 +230,7 @@ From a defender's perspective, the script appeared to be a routine IT maintenanc
 ### Image 3 – Original EndpointHealthCheck.ps1
 
 <p align="center">
-<img src="screenshots/image3.png" width="900">
+<img src="Screenshots/image3.png" width="900">
 </p>
 
 *Figure 3. The original PowerShell health check script used by the organization's IT department.*
@@ -240,7 +240,7 @@ From a defender's perspective, the script appeared to be a routine IT maintenanc
 ### Image 4 – Modified EndpointHealthCheck.ps1
 
 <p align="center">
-<img src="screenshots/image4.png" width="900">
+<img src="Screenshots/image4.png" width="900">
 </p>
 
 *Figure 4. The modified PowerShell script containing additional commands used to perform discovery, establish persistence, and simulate outbound communication.*
