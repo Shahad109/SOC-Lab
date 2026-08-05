@@ -542,3 +542,186 @@ These commands were used to enumerate the endpoint by collecting information abo
 ## SOC Analyst Conclusion
 
 The investigation confirmed that the modified **EndpointHealthCheck.ps1** script was successfully executed. By analyzing Sysmon Process Creation events, the SOC analyst reconstructed the execution chain, beginning with the PowerShell process, identifying its parent process, and examining the child processes it spawned. The evidence demonstrated that the attacker used the script to initiate endpoint discovery, providing the information required to support later stages of the intrusion.
+
+# Phase 5 – Installation
+
+## Objective
+
+Determine whether the attacker established a persistence mechanism on the compromised endpoint that would allow the malicious PowerShell script to execute automatically after the initial compromise.
+
+---
+
+## Description
+
+Following successful exploitation, attackers commonly install a persistence mechanism to maintain access to the compromised system. Rather than relying on the victim to execute the payload repeatedly, persistence enables the malicious code to run automatically whenever a predefined event occurs.
+
+In this scenario, the modified **EndpointHealthCheck.ps1** script created a Windows Scheduled Task named **Endpoint Health Check**. The task was configured to execute the PowerShell script every time the user logged on, allowing the attacker to regain execution without requiring additional user interaction.
+
+From the SOC analyst's perspective, the objective was to determine whether PowerShell created any persistence mechanism after execution. By investigating Sysmon Process Creation events, the analyst identified **schtasks.exe** being launched by **powershell.exe**, confirming that the attacker had installed a Scheduled Task to maintain access.
+
+---
+
+# SOC Investigation
+
+## Investigation Question
+
+> **Did the attacker establish persistence on the endpoint?**
+
+To answer this question, Sysmon Process Creation events were searched for executions of **schtasks.exe**, the native Windows utility used to create and manage Scheduled Tasks.
+
+### SPL Query
+
+```spl
+index=endpoint
+source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+EventID=1
+Image="*schtasks.exe"
+| table _time Image ParentImage CommandLine
+```
+
+### Why was this query used?
+
+| Query Component | Purpose |
+|-----------------|---------|
+| `EventID=1` | Retrieves Sysmon Process Creation events. |
+| `Image="*schtasks.exe"` | Identifies executions of the Windows Scheduled Task utility. |
+| `ParentImage` | Determines which process launched schtasks.exe. |
+| `CommandLine` | Displays the exact command used to create the Scheduled Task. |
+
+---
+
+## Findings
+
+The investigation identified **schtasks.exe** being executed by **powershell.exe**, indicating that the PowerShell script attempted to create a Scheduled Task.
+
+The command line showed that the task was created using:
+
+- `/Create` – Creates a new Scheduled Task.
+- `/SC ONLOGON` – Configures the task to run whenever a user logs on.
+- `/TN "Endpoint Health Check"` – Assigns the task name.
+- `/TR` – Specifies the command that will be executed.
+
+The task was configured to execute:
+
+```text
+powershell.exe -ExecutionPolicy Bypass -File C:\Users\SOC\Downloads\EndpointHealthCheck.ps1
+```
+
+This confirmed that the attacker installed a persistence mechanism capable of automatically executing the modified PowerShell script during future user logon events.
+
+---
+
+## Evidence
+
+### Figure 11 – Scheduled Task Creation
+
+<p align="center">
+<img src="Screenshots/image11.png" width="900">
+</p>
+
+*Figure 11. Sysmon Process Creation event showing **schtasks.exe** creating the Scheduled Task used for persistence.*
+
+---
+
+## MITRE ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|---------|-----------|----|
+| Persistence | Scheduled Task/Job | T1053.005 |
+
+---
+
+## SOC Analyst Conclusion
+
+The investigation confirmed that the attacker established persistence by creating a Windows Scheduled Task through **schtasks.exe**. Because the task was configured to execute the modified PowerShell script automatically at user logon, the attacker would be able to regain execution after the initial compromise without requiring further user interaction.
+
+# Phase 6 – Command and Control (C2)
+
+## Objective
+
+Determine whether the compromised endpoint established outbound communication with attacker-controlled infrastructure following successful installation of the persistence mechanism.
+
+---
+
+## Description
+
+Following successful exploitation and installation, attackers typically establish communication with external infrastructure to verify that the compromise was successful and to enable future interaction with the compromised endpoint. This communication channel, commonly referred to as **Command and Control (C2)**, allows attackers to exchange information, issue commands, download additional payloads, or exfiltrate collected data.
+
+In this lab, command-and-control activity was simulated using a Python HTTP server running on the Kali Linux attacker machine. Rather than implementing a complete C2 framework, the modified PowerShell script generated an outbound HTTP request to the simulated attacker server after execution.
+
+From the SOC analyst's perspective, the objective was to determine whether the suspicious PowerShell process initiated any outbound network connections following execution. Using Sysmon Network Connection events (Event ID 3), the analyst reconstructed the communication between the compromised endpoint and the simulated attacker infrastructure.
+
+---
+
+# SOC Investigation
+
+## Investigation Question
+
+> **Did the compromised endpoint communicate with an external server?**
+
+The investigation focused on Sysmon Network Connection events generated by PowerShell.
+
+### SPL Query
+
+```spl
+index=endpoint
+source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+EventID=3
+Image="*powershell.exe"
+| table _time Image DestinationIp DestinationHostname DestinationPort Protocol
+```
+
+### Why was this query used?
+
+| Query Component | Purpose |
+|-----------------|---------|
+| `EventID=3` | Retrieves Sysmon Network Connection events. |
+| `Image="*powershell.exe"` | Filters network activity initiated by PowerShell. |
+| `DestinationIp` | Displays the destination IP address. |
+| `DestinationHostname` | Displays the remote hostname when available. |
+| `DestinationPort` | Identifies the destination service. |
+| `Protocol` | Displays the communication protocol. |
+
+---
+
+## Findings
+
+The investigation identified an outbound network connection initiated by **powershell.exe**.
+
+The connection was established to the simulated attacker server:
+
+- **Destination IP:** `192.168.7.132`
+- **Destination Port:** `8000`
+- **Protocol:** TCP
+
+The destination matched the Python HTTP server previously used to host the modified PowerShell script. This confirmed that the compromised endpoint successfully communicated with the attacker-controlled infrastructure after execution.
+
+Although simplified for the purpose of this lab, the observed behavior resembles the initial beacon commonly seen during the early stages of command-and-control activity.
+
+---
+
+## Evidence
+
+### Figure 12 – Outbound Network Connection
+
+<p align="center">
+<img src="Screenshots/image12.png" width="900">
+</p>
+
+*Figure 12. Sysmon Event ID 3 showing PowerShell initiating an outbound TCP connection to the simulated attacker server.*
+
+---
+
+## MITRE ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|---------|-----------|----|
+| Command and Control | Application Layer Protocol: Web Protocols | T1071.001 |
+
+---
+
+## SOC Analyst Conclusion
+
+The investigation confirmed that the PowerShell process established outbound communication with the simulated attacker-controlled server. Correlating the network connection with the earlier execution events demonstrated that the attack had progressed beyond installation and entered the Command and Control phase of the Cyber Kill Chain.
+
+
