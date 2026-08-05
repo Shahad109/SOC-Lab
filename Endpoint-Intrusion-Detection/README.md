@@ -368,7 +368,7 @@ This confirms that the payload was successfully transferred to the victim's work
 
 The delivery phase was successful. Analysis of the web server logs confirmed that the victim downloaded the modified PowerShell script from the simulated internal repository. By delivering the payload through a trusted IT communication channel, the attacker increased the likelihood of successful execution, enabling the attack to progress to the execution phase.
 
-# Phase 4 – Execution
+# Phase 4 – Exploitation
 
 ## Objective
 
@@ -378,13 +378,13 @@ Determine whether the delivered PowerShell script was successfully executed on t
 
 ## Description
 
-The execution phase marks the point at which the delivered payload is launched on the victim's system. In this scenario, the employee executed the downloaded **EndpointHealthCheck.ps1** script after receiving a routine IT notification requesting a scheduled endpoint health check.
+The exploitation phase begins when the victim executes the delivered payload, allowing the attacker to gain code execution on the target system. In this scenario, the employee followed the instructions provided in the simulated IT notification and executed the downloaded **EndpointHealthCheck.ps1** script.
 
-Although the script appeared to be a legitimate administrative tool, it had been modified during the weaponization phase to include additional commands beyond its intended functionality. Once executed, the script initiated several system discovery commands and generated Windows process creation events recorded by Sysmon.
+Although the script appeared to be a legitimate administrative tool, it had been modified during the weaponization phase to include malicious functionality. Once executed, the script initiated the attack and generated Windows process creation events recorded by Sysmon.
 
-From the SOC analyst's perspective, the investigation began by identifying the suspicious PowerShell process, determining how it was launched, and analyzing the processes it spawned. By correlating these events, the analyst reconstructed the execution chain and confirmed that the delivered script had successfully run on the endpoint.
+From the SOC analyst's perspective, the first objective was to determine whether the downloaded script had been executed and identify the process responsible for launching it. By analyzing Sysmon Process Creation events, the analyst reconstructed the execution chain and confirmed that the attack had progressed beyond the delivery phase.
 
-This phase provides the first clear evidence that the attack progressed beyond delivery and entered active execution.
+This phase represents the initial compromise of the endpoint and provides the first observable evidence of malicious activity within the environment.
 
 ## SOC Investigation
 
