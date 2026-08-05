@@ -51,7 +51,7 @@ This repository documents practical SOC projects built in a controlled virtual e
 
 | Project | Description | Status |
 |---------|-------------|--------|
-| Endpoint Intrusion Investigation | Simulated endpoint compromise investigated using Sysmon and Splunk. | ✅ |
+| Endpoint Intrusion Detection | Simulated endpoint compromise investigated using Sysmon and Splunk. | ✅ |
 
 More SOC investigations will be added over time.
 
