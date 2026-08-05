@@ -101,7 +101,7 @@ Although the reconnaissance phase did not directly compromise the endpoint, it p
 ### Image 1 – Nmap Scan Results
 
 <p align="center">
-<img src="Screenshots/image.png" width="900">
+<img src="Screenshot/image.png" width="900">
 </p>
 
 *Figure 1. Nmap service scan identifying exposed Windows services on the target endpoint.*
@@ -111,7 +111,7 @@ Although the reconnaissance phase did not directly compromise the endpoint, it p
 ### Image 2 – Splunk Firewall Investigation
 
 <p align="center">
-<img src="Screenshots/image2.png" width="900">
+<img src="Screenshot/image2.png" width="900">
 </p>
 
 *Figure 2. Windows Firewall events showing inbound connection attempts associated with reconnaissance activity.*
