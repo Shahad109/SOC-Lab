@@ -122,7 +122,7 @@ This activity is consistent with active network reconnaissance, where an attacke
 ### Image 1 – Nmap Scan
 
 <p align="center">
-<img src="screenshots/image1.png" width="900">
+<img src="Screenshots/image1.png" width="900">
 </p>
 
 *Figure 1. Nmap TCP SYN scan identifying exposed services on the Windows endpoint.*
@@ -132,7 +132,7 @@ This activity is consistent with active network reconnaissance, where an attacke
 ### Image 2 – Splunk Investigation
 
 <p align="center">
-<img src="screenshots/image2.png" width="900">
+<img src="Screenshots/image2.png" width="900">
 </p>
 
 *Figure 2. Windows Firewall logs reviewed in Splunk showing inbound connections associated with reconnaissance activity.*
