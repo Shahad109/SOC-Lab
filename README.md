@@ -49,12 +49,30 @@ This repository documents practical SOC projects built in a controlled virtual e
 
 ## Projects
 
-| Project | Description | Status |
-|---------|-------------|--------|
-| Endpoint Intrusion Detection | Simulated endpoint compromise investigated using Sysmon and Splunk. | ✅ |
+### 🛡️ Endpoint Intrusion Detection
+
+A hands-on SOC investigation that simulates a realistic endpoint compromise using a phishing-delivered PowerShell script. The project demonstrates how endpoint telemetry collected by **Sysmon** and analyzed in **Splunk Enterprise** can be used to reconstruct the complete attack lifecycle using the **Cyber Kill Chain** and **MITRE ATT&CK** framework.
+
+<p align="center">
+<img src="Endpoint-Intrusion-Detection/Screenshots/image14.png" width="1000">
+</p>
+
+*Cyber Kill Chain investigation summary of the simulated endpoint intrusion.*
+
+**Project Highlights**
+
+- Simulated attacker infrastructure using **Kali Linux**
+- Investigated Windows endpoint telemetry using **Sysmon**
+- Correlated **Process Creation** and **Network Connection** events in Splunk
+- Reconstructed all seven Cyber Kill Chain phases
+- Mapped attacker techniques to the **MITRE ATT&CK** framework
+- Documented the complete SOC investigation process
+
+📂 **Project Folder:** [Endpoint-Intrusion-Detection](./Endpoint-Intrusion-Detection)
+
+---
 
 More SOC investigations will be added over time.
-
 ---
 
 
