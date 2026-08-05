@@ -1,5 +1,7 @@
 # SOC Lab
 
+**Author:** Shahad 
+
 A hands-on Security Operations Center (SOC) laboratory focused on attack simulation, threat detection, incident investigation, and detection engineering.
 
 This repository documents practical SOC projects built in a controlled virtual environment. Each project simulates realistic attack scenarios and demonstrates how security events can be detected, investigated, and mapped to industry frameworks such as the MITRE ATT&CK framework and the Cyber Kill Chain.
